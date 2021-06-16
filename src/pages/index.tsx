@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 // Ambient TypeScript import only
 import type { HelloResponseType } from "./api/hello";
+import type { APIResponse } from "nextkit";
 
 export default function Home() {
   const [data, setData] = useState<HelloResponseType | null>(null);
@@ -11,9 +12,13 @@ export default function Home() {
   useEffect(() => {
     void fetch("/api/hello")
       .then(async (res) => {
-        const json = await res.json();
-        if (res.status >= 400) throw new Error(json.message);
-        return json;
+        const json = (await res.json()) as APIResponse<HelloResponseType>;
+
+        if (!json.success) {
+          throw new Error(json.message);
+        }
+
+        return json.data;
       })
       .then(setData)
       .catch(setError);
